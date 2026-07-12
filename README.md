@@ -36,7 +36,7 @@ denken-cli [command] [flags]
 | `register [--email --password --passphrase]` | 新規ユーザーを登録する (招待コードが必要) |
 | `ping` | サーバーの稼働確認を行う |
 
-#### `user` — ユーザー情報
+#### `user` ユーザー情報
 
 | コマンド | 説明 |
 | --- | --- |
@@ -47,7 +47,7 @@ denken-cli [command] [flags]
 | `user verify-email` | 確認メールを再送する |
 | `user providers` | 紐づくログイン手段を表示する |
 
-#### `totp` — 2段階認証
+#### `totp` 2段階認証
 
 | コマンド | 説明 |
 | --- | --- |
@@ -55,7 +55,7 @@ denken-cli [command] [flags]
 | `totp enable --code <code>` | コードを検証して有効化する |
 | `totp disable --code <code>` | コード/リカバリコードを検証して解除する |
 
-#### `blog` — ブログ記事
+#### `blog` ブログ記事
 
 | コマンド | 説明 |
 | --- | --- |
@@ -64,7 +64,7 @@ denken-cli [command] [flags]
 | `blog update --slug <s> --file <path> [--title]` | 記事を新規作成/更新する (要 BlogEdit) |
 | `blog edit <slug>` | 記事の本文を $EDITOR で開いて編集、保存する (要 BlogEdit) |
 
-#### `invite` — 招待コード
+#### `invite` 招待コード
 
 | コマンド | 説明 |
 | --- | --- |
@@ -72,7 +72,7 @@ denken-cli [command] [flags]
 | `invite create` | 新しい招待コードを生成する (要 InviteCodeCreate) |
 | `invite delete <code>` | 指定した招待コードを無効化する |
 
-#### `members` — 部員名簿 (要 MemberManage)
+#### `members` 部員名簿 (要 MemberManage)
 
 | コマンド | 説明 |
 | --- | --- |
@@ -82,7 +82,7 @@ denken-cli [command] [flags]
 | `members reject <id>` | 仮部員の登録を却下する (要 MemberApprove) |
 | `members update <id> [--name --furigana --email --tel --status --join-date --role-bits --perm-bits]` | 部員情報を更新する (項目ごとに必要権限が異なる) |
 
-#### `private-posts` (別名 `pp`) — 非公開記事
+#### `private-posts` (別名 `pp`) 非公開記事
 
 | コマンド | 説明 |
 | --- | --- |
@@ -92,7 +92,7 @@ denken-cli [command] [flags]
 | `private-posts delete <slug>` | 削除する (要 PrivatePostEdit) |
 | `private-posts edit <slug>` | 本文を `$EDITOR` で開いて編集、保存する (要 PrivatePostEdit) |
 
-#### `image` — ブログ用画像
+#### `image` ブログ用画像
 
 | コマンド | 説明 |
 | --- | --- |
@@ -100,7 +100,7 @@ denken-cli [command] [flags]
 | `image upload --file <path> [--name]` | 画像をアップロードする (要 ImageUpload) |
 | `image delete --filename <f> --sha <sha>` | 画像を削除する (要 ImageDelete) |
 
-#### `portal` — ポータル / 外部サービス連携
+#### `portal` ポータル / 外部サービス連携
 
 | コマンド | 説明 |
 | --- | --- |
@@ -112,7 +112,7 @@ denken-cli [command] [flags]
 | `portal github token get\|save\|delete` | GitHub PAT の確認/保存/削除 (要 BlogEdit) |
 | `portal discord invite` | Discord サーバーの招待コードを取得する |
 
-#### `switchbot` — 部室スマートロック (要 SwitchBotControl)
+#### `switchbot` 部室スマートロック (要 SwitchBotControl)
 
 | コマンド | 説明 |
 | --- | --- |
@@ -121,7 +121,7 @@ denken-cli [command] [flags]
 | `switchbot lock` | 施錠する |
 | `switchbot unlock` | 解錠する |
 
-#### `pages` — 固定ページ編集 (要 PageEdit)
+#### `pages` 固定ページ編集 (要 PageEdit)
 
 | コマンド | 説明 |
 | --- | --- |
