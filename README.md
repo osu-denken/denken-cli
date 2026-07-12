@@ -1,6 +1,9 @@
 # denken-cli
 OSU-Denken Web APIのCLI/TUIクライアントツール
 
+<img width="697" height="576" alt="image" src="https://github.com/user-attachments/assets/8f48bb6b-836d-40e8-ac1c-163ca27e49a0" />
+
+
 ## 使い方
 
 ```bash
