@@ -82,22 +82,7 @@ func newLogoutCmd(app *appContext) *cobra.Command {
 }
 
 func newWhoamiCmd(app *appContext) *cobra.Command {
-	return &cobra.Command{
-		Use:   "whoami",
-		Short: "認証済みユーザーの情報を表示する",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().Info(ctx)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
-		},
-	}
+	return authRawCmd(app, "whoami", "認証済みユーザーの情報を表示する", app.client().Info)
 }
 
 func newRefreshCmd(app *appContext) *cobra.Command {

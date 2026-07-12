@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
@@ -11,16 +13,9 @@ func newLogsCmd(app *appContext) *cobra.Command {
 		Use:   "logs",
 		Short: "操作ログを一覧する (要 LogView 権限)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().LogsList(ctx, q)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().LogsList(ctx, q)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&q.Type, "type", "", "種別で絞り込む")

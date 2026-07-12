@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"context"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -25,42 +25,19 @@ func newTerminalEditCmd(app *appContext) *cobra.Command {
 		Use:   "edit",
 		Short: "welcome.md を $EDITOR で開いて編集、保存する",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runTerminalEdit(app, page)
+			fetch := func(ctx context.Context) (string, error) {
+				raw, err := app.client().TerminalGet(ctx, page)
+				return jsonField(raw, "content"), err
+			}
+			save := func(ctx context.Context, content string) error {
+				_, err := app.client().TerminalUpdate(ctx, content)
+				return err
+			}
+			return app.runEdit(".md", page, fetch, save)
 		},
 	}
 	cmd.Flags().StringVar(&page, "page", "welcome", "ページ名")
 	return cmd
-}
-
-func runTerminalEdit(app *appContext, page string) error {
-	current, err := fetchTerminal(app, page)
-	if err != nil {
-		return err
-	}
-	edited, ok, err := app.openEditor(current, ".md")
-	if err != nil || !ok {
-		return err
-	}
-	ctx, cancel := newContext()
-	defer cancel()
-	if _, err := app.client().TerminalUpdate(ctx, edited); err != nil {
-		return err
-	}
-	fmt.Fprintln(app.out, "更新しました:", page)
-	return nil
-}
-
-func fetchTerminal(app *appContext, page string) (string, error) {
-	ctx, cancel := newContext()
-	defer cancel()
-	if err := app.requireAuth(ctx); err != nil {
-		return "", err
-	}
-	raw, err := app.client().TerminalGet(ctx, page)
-	if err != nil {
-		return "", err
-	}
-	return jsonField(raw, "content"), nil
 }
 
 func newTerminalGetCmd(app *appContext) *cobra.Command {
@@ -69,13 +46,9 @@ func newTerminalGetCmd(app *appContext) *cobra.Command {
 		Use:   "get",
 		Short: "welcome.md の内容を取得する",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			raw, err := app.client().TerminalGet(ctx, page)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(false, func(ctx context.Context) (rawJSON, error) {
+				return app.client().TerminalGet(ctx, page)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&page, "page", "welcome", "ページ名")
@@ -92,16 +65,9 @@ func newTerminalUpdateCmd(app *appContext) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().TerminalUpdate(ctx, string(content))
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().TerminalUpdate(ctx, string(content))
+			})
 		},
 	}
 	cmd.Flags().StringVar(&file, "file", "", "内容ファイルのパス")

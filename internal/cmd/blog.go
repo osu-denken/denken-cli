@@ -1,11 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -27,30 +27,19 @@ func newBlogEditCmd(app *appContext) *cobra.Command {
 }
 
 func runBlogEdit(app *appContext, slug string) error {
-	entry, err := fetchBlog(app, slug)
-	if err != nil {
-		return err
+	var meta map[string]any
+	fetch := func(ctx context.Context) (string, error) {
+		entry, err := app.client().BlogGet(ctx, slug)
+		if err != nil {
+			return "", err
+		}
+		meta = entry.Meta
+		return entry.Content, nil
 	}
-	edited, ok, err := app.openEditor(entry.Content, ".md")
-	if err != nil || !ok {
-		return err
+	save := func(ctx context.Context, content string) error {
+		return app.client().BlogUpdate(ctx, slug, meta, content)
 	}
-	ctx, cancel := newContext()
-	defer cancel()
-	if err := app.client().BlogUpdate(ctx, slug, entry.Meta, edited); err != nil {
-		return err
-	}
-	fmt.Fprintln(app.out, "更新しました:", slug)
-	return nil
-}
-
-func fetchBlog(app *appContext, slug string) (*api.BlogEntry, error) {
-	ctx, cancel := newContext()
-	defer cancel()
-	if err := app.requireAuth(ctx); err != nil {
-		return nil, err
-	}
-	return app.client().BlogGet(ctx, slug)
+	return app.runEdit(".md", slug, fetch, save)
 }
 
 func newBlogListCmd(app *appContext) *cobra.Command {
