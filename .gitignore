@@ -1,0 +1,22 @@
+# build artifacts
+/denken-cli
+/denken-cli.exe
+/dist/
+*.exe
+*.out
+
+# Go
+/vendor/
+*.test
+*.prof
+
+# Settings
+config.json
+*.local.json
+.env
+.dev.vars
+
+# IDE
+.DS_Store
+.idea/
+*.swp
