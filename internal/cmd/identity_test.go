@@ -5,9 +5,9 @@ import "testing"
 func TestResolveEmail(t *testing.T) {
 	cases := map[string]string{
 		"99x999":                        "s99x999@ge.osaka-sandai.ac.jp",
-		"24H034":                        "s99x999@ge.osaka-sandai.ac.jp",
+		"99X999":                        "s99x999@ge.osaka-sandai.ac.jp",
 		"s99x999":                       "s99x999@ge.osaka-sandai.ac.jp",
-		"S99H999":                       "s99x999@ge.osaka-sandai.ac.jp",
+		"S99X999":                       "s99x999@ge.osaka-sandai.ac.jp",
 		" 99x999 ":                      "s99x999@ge.osaka-sandai.ac.jp",
 		"foo@example.com":               "foo@example.com",
 		"s99x999@ge.osaka-sandai.ac.jp": "s99x999@ge.osaka-sandai.ac.jp",

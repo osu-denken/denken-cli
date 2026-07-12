@@ -3,15 +3,16 @@ package cmd
 import (
 	"context"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
 func newGithubTokenCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "token", Short: "GitHub PAT の確認、保存、削除 (要 BlogEdit 権限)"}
 	cmd.AddCommand(
-		authRawCmd(app, "get", "保存済み PAT の状態を確認する", app.client().GithubTokenGet),
+		authRawCmd(app, "get", "保存済み PAT の状態を確認する", (*api.Client).GithubTokenGet),
 		newGithubTokenSaveCmd(app),
-		authRawCmd(app, "delete", "保存済み PAT を削除する", app.client().GithubTokenDelete),
+		authRawCmd(app, "delete", "保存済み PAT を削除する", (*api.Client).GithubTokenDelete),
 	)
 	return cmd
 }

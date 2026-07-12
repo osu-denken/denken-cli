@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/osu-denken/denken-cli/internal/editor"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +12,7 @@ import (
 func newSitePagesCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "site", Short: "公式サイト本体の固定ページ (content/ 配下)"}
 	cmd.AddCommand(
-		authRawCmd(app, "list", "編集できるファイルの一覧を返す", app.client().SitePagesList),
+		authRawCmd(app, "list", "編集できるファイルの一覧を返す", (*api.Client).SitePagesList),
 		newSitePagesGetCmd(app), newSitePagesUpdateCmd(app), newSitePagesEditCmd(app),
 	)
 	return cmd

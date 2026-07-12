@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -16,15 +17,15 @@ func newPrivatePostsCmd(app *appContext) *cobra.Command {
 }
 
 func newPPListCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "list", "非公開記事を一覧する (要 PrivatePostView 権限)", app.client().PrivatePostList)
+	return authRawCmd(app, "list", "非公開記事を一覧する (要 PrivatePostView 権限)", (*api.Client).PrivatePostList)
 }
 
 func newPPGetCmd(app *appContext) *cobra.Command {
-	return argCmd(app, "get <slug>", "非公開記事の本文を取得する", true, app.client().PrivatePostGet)
+	return argCmd(app, "get <slug>", "非公開記事の本文を取得する", true, (*api.Client).PrivatePostGet)
 }
 
 func newPPDeleteCmd(app *appContext) *cobra.Command {
-	return argCmd(app, "delete <slug>", "非公開記事を削除する (要 PrivatePostEdit 権限)", true, app.client().PrivatePostDelete)
+	return argCmd(app, "delete <slug>", "非公開記事を削除する (要 PrivatePostEdit 権限)", true, (*api.Client).PrivatePostDelete)
 }
 
 func newPPEditCmd(app *appContext) *cobra.Command {

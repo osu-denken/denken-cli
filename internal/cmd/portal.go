@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -13,12 +14,12 @@ func newPortalCmd(app *appContext) *cobra.Command {
 }
 
 func newPortalInfoCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "info", "ポータル用の情報をまとめて取得する", app.client().Portal)
+	return authRawCmd(app, "info", "ポータル用の情報をまとめて取得する", (*api.Client).Portal)
 }
 
 func newDiscordCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "discord", Short: "Discord 連携"}
-	cmd.AddCommand(authRawCmd(app, "invite", "Discord サーバーの招待コードを取得する", app.client().DiscordInvite))
+	cmd.AddCommand(authRawCmd(app, "invite", "Discord サーバーの招待コードを取得する", (*api.Client).DiscordInvite))
 	return cmd
 }
 
@@ -26,8 +27,8 @@ func newGithubCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "github", Short: "GitHub 連携"}
 	cmd.AddCommand(
 		newGithubInviteCmd(app), newGithubJoinCmd(app),
-		authRawCmd(app, "username", "連携済み GitHub ログイン名を取得する", app.client().GithubUsername),
-		authRawCmd(app, "oauth-start", "GitHub OAuth の認可 URL を取得する (要 BlogEdit 権限)", app.client().GithubOAuthStart),
+		authRawCmd(app, "username", "連携済み GitHub ログイン名を取得する", (*api.Client).GithubUsername),
+		authRawCmd(app, "oauth-start", "GitHub OAuth の認可 URL を取得する (要 BlogEdit 権限)", (*api.Client).GithubOAuthStart),
 		newGithubTokenCmd(app),
 	)
 	return cmd
