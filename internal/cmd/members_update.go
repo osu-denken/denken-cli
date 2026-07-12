@@ -1,14 +1,14 @@
 package cmd
 
 import (
-	"encoding/json"
+	"context"
 	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
 // memberIDCmd は <id> を1つ取り認証必須で JSON を表示するコマンドを作る。
-func memberIDCmd(app *appContext, use, short string, fn func(cmdCtx, int) (any, error)) *cobra.Command {
+func memberIDCmd(app *appContext, use, short string, call func(context.Context, int) (rawJSON, error)) *cobra.Command {
 	return &cobra.Command{
 		Use:   use,
 		Short: short,
@@ -18,16 +18,9 @@ func memberIDCmd(app *appContext, use, short string, fn func(cmdCtx, int) (any, 
 			if err != nil {
 				return err
 			}
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			res, err := fn(cmdCtx{ctx}, id)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(res.(json.RawMessage))
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return call(ctx, id)
+			})
 		},
 	}
 }
@@ -53,16 +46,9 @@ func newMembersUpdateCmd(app *appContext) *cobra.Command {
 func runMembersUpdate(app *appContext, id int, f *memberUpdateFlags) error {
 	body := f.body()
 	body["id"] = id
-	ctx, cancel := newContext()
-	defer cancel()
-	if err := app.requireAuth(ctx); err != nil {
-		return err
-	}
-	raw, err := app.client().MembersUpdate(ctx, body)
-	if err != nil {
-		return err
-	}
-	return app.printJSON(raw)
+	return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+		return app.client().MembersUpdate(ctx, body)
+	})
 }
 
 // memberUpdateFlags は members update の可変項目。

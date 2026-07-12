@@ -21,16 +21,9 @@ func newMembersListCmd(app *appContext) *cobra.Command {
 		Use:   "list",
 		Short: "部員一覧を取得する",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().MembersList(ctx, status)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().MembersList(ctx, status)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&status, "status", "", "pre-active/active/withdrawn/graduated/rejected")
@@ -38,19 +31,13 @@ func newMembersListCmd(app *appContext) *cobra.Command {
 }
 
 func newMembersDetailCmd(app *appContext) *cobra.Command {
-	return memberIDCmd(app, "detail <id>", "部員一人の詳細を取得する", func(c cmdCtx, id int) (any, error) {
-		return app.client().MembersDetail(c.ctx, id)
-	})
+	return memberIDCmd(app, "detail <id>", "部員一人の詳細を取得する", app.client().MembersDetail)
 }
 
 func newMembersApproveCmd(app *appContext) *cobra.Command {
-	return memberIDCmd(app, "approve <id>", "仮部員を承認する (要 MemberApprove 権限)", func(c cmdCtx, id int) (any, error) {
-		return app.client().MembersApprove(c.ctx, id)
-	})
+	return memberIDCmd(app, "approve <id>", "仮部員を承認する (要 MemberApprove 権限)", app.client().MembersApprove)
 }
 
 func newMembersRejectCmd(app *appContext) *cobra.Command {
-	return memberIDCmd(app, "reject <id>", "仮部員の登録を却下する (要 MemberApprove 権限)", func(c cmdCtx, id int) (any, error) {
-		return app.client().MembersReject(c.ctx, id)
-	})
+	return memberIDCmd(app, "reject <id>", "仮部員の登録を却下する (要 MemberApprove 権限)", app.client().MembersReject)
 }

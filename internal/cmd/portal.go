@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 )
 
@@ -11,16 +13,12 @@ func newPortalCmd(app *appContext) *cobra.Command {
 }
 
 func newPortalInfoCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "info", "ポータル用の情報をまとめて取得する", func(c cmdCtx) (any, error) {
-		return app.client().Portal(c.ctx)
-	})
+	return authRawCmd(app, "info", "ポータル用の情報をまとめて取得する", app.client().Portal)
 }
 
 func newDiscordCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "discord", Short: "Discord 連携"}
-	cmd.AddCommand(authRawCmd(app, "invite", "Discord サーバーの招待コードを取得する", func(c cmdCtx) (any, error) {
-		return app.client().DiscordInvite(c.ctx)
-	}))
+	cmd.AddCommand(authRawCmd(app, "invite", "Discord サーバーの招待コードを取得する", app.client().DiscordInvite))
 	return cmd
 }
 
@@ -28,12 +26,8 @@ func newGithubCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "github", Short: "GitHub 連携"}
 	cmd.AddCommand(
 		newGithubInviteCmd(app), newGithubJoinCmd(app),
-		authRawCmd(app, "username", "連携済み GitHub ログイン名を取得する", func(c cmdCtx) (any, error) {
-			return app.client().GithubUsername(c.ctx)
-		}),
-		authRawCmd(app, "oauth-start", "GitHub OAuth の認可 URL を取得する (要 BlogEdit 権限)", func(c cmdCtx) (any, error) {
-			return app.client().GithubOAuthStart(c.ctx)
-		}),
+		authRawCmd(app, "username", "連携済み GitHub ログイン名を取得する", app.client().GithubUsername),
+		authRawCmd(app, "oauth-start", "GitHub OAuth の認可 URL を取得する (要 BlogEdit 権限)", app.client().GithubOAuthStart),
 		newGithubTokenCmd(app),
 	)
 	return cmd
@@ -45,16 +39,9 @@ func newGithubInviteCmd(app *appContext) *cobra.Command {
 		Use:   "invite",
 		Short: "指定メールを GitHub Organization に招待する (要 MemberManage 権限)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().GithubInvite(ctx, email)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().GithubInvite(ctx, email)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&email, "email", "", "招待するメールアドレス")
@@ -68,16 +55,9 @@ func newGithubJoinCmd(app *appContext) *cobra.Command {
 		Use:   "join",
 		Short: "自分が Organization への招待を受け取る (連携済みなら username 省略可)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().GithubJoin(ctx, username)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().GithubJoin(ctx, username)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&username, "username", "", "GitHub ユーザー名")

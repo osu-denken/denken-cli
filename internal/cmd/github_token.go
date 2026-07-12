@@ -1,19 +1,17 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 )
 
 func newGithubTokenCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "token", Short: "GitHub PAT の確認、保存、削除 (要 BlogEdit 権限)"}
 	cmd.AddCommand(
-		authRawCmd(app, "get", "保存済み PAT の状態を確認する", func(c cmdCtx) (any, error) {
-			return app.client().GithubTokenGet(c.ctx)
-		}),
+		authRawCmd(app, "get", "保存済み PAT の状態を確認する", app.client().GithubTokenGet),
 		newGithubTokenSaveCmd(app),
-		authRawCmd(app, "delete", "保存済み PAT を削除する", func(c cmdCtx) (any, error) {
-			return app.client().GithubTokenDelete(c.ctx)
-		}),
+		authRawCmd(app, "delete", "保存済み PAT を削除する", app.client().GithubTokenDelete),
 	)
 	return cmd
 }
@@ -30,18 +28,11 @@ func newGithubTokenSaveCmd(app *appContext) *cobra.Command {
 					return err
 				}
 			}
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().GithubTokenSave(ctx, token)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().GithubTokenSave(ctx, token)
+			})
 		},
 	}
-	cmd.Flags().StringVar(&token, "token", "", "GitHub PAT (省略時はプロンプト)")
+	cmd.Flags().StringVar(&token, "token", "", "GitHub PAT")
 	return cmd
 }
