@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ func newImageCmd(app *appContext) *cobra.Command {
 }
 
 func newImageListCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "list", "アップロード済み画像を一覧する (要 BlogEdit 権限)", app.client().ImageList)
+	return authRawCmd(app, "list", "アップロード済み画像を一覧する (要 BlogEdit 権限)", (*api.Client).ImageList)
 }
 
 func newImageUploadCmd(app *appContext) *cobra.Command {
