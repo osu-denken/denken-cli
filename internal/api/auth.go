@@ -10,18 +10,18 @@ import (
 // AuthResult は認証系エンドポイントが返すトークン情報。
 // 2段階認証が有効な場合は MFARequired が true になりトークンは空になる。
 type AuthResult struct {
-	IDToken         string `json:"idToken"`
-	RefreshToken    string `json:"refreshToken"`
-	ExpiresIn       string `json:"expiresIn"`
-	LocalID         string `json:"localId"`
-	Email           string `json:"email"`
-	MFARequired     bool   `json:"mfaRequired"`
-	MFAPendingToken string `json:"mfaPendingToken"`
+	IDToken         string      `json:"idToken"`
+	RefreshToken    string      `json:"refreshToken"`
+	ExpiresIn       json.Number `json:"expiresIn"` // API は文字列・数値どちらでも返しうる
+	LocalID         string      `json:"localId"`
+	Email           string      `json:"email"`
+	MFARequired     bool        `json:"mfaRequired"`
+	MFAPendingToken string      `json:"mfaPendingToken"`
 }
 
 // ExpiresAt は expiresIn (秒) を絶対時刻に変換する。値が無ければゼロ値。
 func (r *AuthResult) ExpiresAt() time.Time {
-	secs, err := strconv.Atoi(r.ExpiresIn)
+	secs, err := strconv.Atoi(r.ExpiresIn.String())
 	if err != nil || secs == 0 {
 		return time.Time{}
 	}
@@ -33,7 +33,7 @@ func (c *Client) Exists(ctx context.Context, email string) (json.RawMessage, err
 	return c.postRaw(ctx, "/user/exists", map[string]string{"email": email})
 }
 
-// Register は新規ユーザーを登録する。passphrase は合言葉または招待コード。
+// Register は新規ユーザーを登録する。passphrase は招待コード。
 func (c *Client) Register(ctx context.Context, email, password, passphrase string) (*AuthResult, error) {
 	body := map[string]string{"email": email, "password": password, "passphrase": passphrase}
 	return c.postAuth(ctx, "/user/register", body)

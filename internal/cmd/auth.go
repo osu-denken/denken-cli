@@ -18,16 +18,17 @@ func newLoginCmd(app *appContext) *cobra.Command {
 			return runLogin(app, email, password)
 		},
 	}
-	cmd.Flags().StringVar(&email, "email", "", "メールアドレス")
-	cmd.Flags().StringVar(&password, "password", "", "パスワード (省略時はプロンプト)")
+	cmd.Flags().StringVar(&email, "email", "", "学籍番号")
+	cmd.Flags().StringVar(&password, "password", "", "パスワード")
 	return cmd
 }
 
 func runLogin(app *appContext, email, password string) error {
-	email, err := orPrompt(email, "メールアドレス: ")
+	email, err := orPrompt(email, "学籍番号: ")
 	if err != nil {
 		return err
 	}
+	email = resolveEmail(email)
 	if password == "" {
 		if password, err = promptSecret("パスワード: "); err != nil {
 			return err

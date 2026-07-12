@@ -5,7 +5,7 @@ import (
 )
 
 func newGithubTokenCmd(app *appContext) *cobra.Command {
-	cmd := &cobra.Command{Use: "token", Short: "GitHub PAT の確認・保存・削除 (要 BlogEdit 権限)"}
+	cmd := &cobra.Command{Use: "token", Short: "GitHub PAT の確認、保存、削除 (要 BlogEdit 権限)"}
 	cmd.AddCommand(
 		authRawCmd(app, "get", "保存済み PAT の状態を確認する", func(c cmdCtx) (any, error) {
 			return app.client().GithubTokenGet(c.ctx)

@@ -87,7 +87,7 @@ denken-cli [command] [flags]
 | `private-posts get <slug>` | 本文を取得する (要 PrivatePostView) |
 | `private-posts update --slug <s> --file <path> [--title]` | 新規作成/上書きする (要 PrivatePostEdit) |
 | `private-posts delete <slug>` | 削除する (要 PrivatePostEdit) |
-| `private-posts edit <slug>` | 本文を `$EDITOR` で開いて編集・保存する (要 PrivatePostEdit) |
+| `private-posts edit <slug>` | 本文を `$EDITOR` で開いて編集、保存する (要 PrivatePostEdit) |
 
 #### `image` — ブログ用画像
 
@@ -124,7 +124,7 @@ denken-cli [command] [flags]
 | --- | --- |
 | `pages terminal get [--page]` | ターミナルの welcome.md を取得する |
 | `pages terminal update --file <path>` | welcome.md を更新し再ビルドを起動する |
-| `pages terminal edit [--page]` | welcome.md を `$EDITOR` で開いて編集・保存する |
+| `pages terminal edit [--page]` | welcome.md を `$EDITOR` で開いて編集、保存する |
 | `pages site list` | 編集できるファイルの一覧を返す |
 | `pages site get --path <p>` | 固定ページの中身を取得する |
 | `pages site update --path <p> --file <path>` | 固定ページを更新し再ビルドを起動する |

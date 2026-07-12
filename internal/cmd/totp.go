@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"encoding/json"
+	"context"
 
 	"github.com/spf13/cobra"
 )
@@ -13,52 +13,30 @@ func newTotpCmd(app *appContext) *cobra.Command {
 }
 
 func newTotpSetupCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "setup", "シークレットと QR を発行する (まだ有効化しない)", func(c cmdCtx) (any, error) {
-		return app.client().TotpSetup(c.ctx)
-	})
+	return authRawCmd(app, "setup", "シークレットと QR を発行する (まだ有効化しない)", app.client().TotpSetup)
 }
 
 func newTotpEnableCmd(app *appContext) *cobra.Command {
-	var code string
-	cmd := &cobra.Command{
-		Use:   "enable",
-		Short: "コードを検証して2段階認証を有効化する",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return authCodeAction(app, code, func(c cmdCtx, code string) (any, error) {
-				return app.client().TotpEnable(c.ctx, code)
-			})
-		},
-	}
-	cmd.Flags().StringVar(&code, "code", "", "6桁の認証コード")
-	cmd.MarkFlagRequired("code")
-	return cmd
+	return codeCmd(app, "enable", "コードを検証して2段階認証を有効化する", "6桁の認証コード", app.client().TotpEnable)
 }
 
 func newTotpDisableCmd(app *appContext) *cobra.Command {
+	return codeCmd(app, "disable", "コード (またはリカバリコード) を検証して解除する", "認証コードまたはリカバリコード", app.client().TotpDisable)
+}
+
+// codeCmd は --code を1つ取り認証必須で JSON を表示するコマンドを作る。
+func codeCmd(app *appContext, use, short, codeHelp string, call func(context.Context, string) (rawJSON, error)) *cobra.Command {
 	var code string
 	cmd := &cobra.Command{
-		Use:   "disable",
-		Short: "コード (またはリカバリコード) を検証して解除する",
+		Use:   use,
+		Short: short,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return authCodeAction(app, code, func(c cmdCtx, code string) (any, error) {
-				return app.client().TotpDisable(c.ctx, code)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return call(ctx, code)
 			})
 		},
 	}
-	cmd.Flags().StringVar(&code, "code", "", "認証コードまたはリカバリコード")
+	cmd.Flags().StringVar(&code, "code", "", codeHelp)
 	cmd.MarkFlagRequired("code")
 	return cmd
-}
-
-func authCodeAction(app *appContext, code string, fn func(cmdCtx, string) (any, error)) error {
-	ctx, cancel := newContext()
-	defer cancel()
-	if err := app.requireAuth(ctx); err != nil {
-		return err
-	}
-	res, err := fn(cmdCtx{ctx}, code)
-	if err != nil {
-		return err
-	}
-	return app.printJSON(res.(json.RawMessage))
 }

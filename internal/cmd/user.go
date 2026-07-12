@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 )
 
@@ -8,28 +10,29 @@ func newRegisterCmd(app *appContext) *cobra.Command {
 	var email, password, passphrase string
 	cmd := &cobra.Command{
 		Use:   "register",
-		Short: "新規ユーザーを登録する (合言葉または招待コードが必要)",
+		Short: "新規ユーザーを登録する (招待コードが必要)",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRegister(app, email, password, passphrase)
 		},
 	}
-	cmd.Flags().StringVar(&email, "email", "", "メールアドレス")
-	cmd.Flags().StringVar(&password, "password", "", "パスワード (省略時はプロンプト)")
-	cmd.Flags().StringVar(&passphrase, "passphrase", "", "合言葉または招待コード")
+	cmd.Flags().StringVar(&email, "email", "", "学籍番号")
+	cmd.Flags().StringVar(&password, "password", "", "パスワード")
+	cmd.Flags().StringVar(&passphrase, "passphrase", "", "招待コード")
 	return cmd
 }
 
 func runRegister(app *appContext, email, password, passphrase string) error {
-	email, err := orPrompt(email, "メールアドレス: ")
+	email, err := orPrompt(email, "学籍番号: ")
 	if err != nil {
 		return err
 	}
+	email = resolveEmail(email)
 	if password == "" {
 		if password, err = promptSecret("パスワード: "); err != nil {
 			return err
 		}
 	}
-	if passphrase, err = orPrompt(passphrase, "合言葉/招待コード: "); err != nil {
+	if passphrase, err = orPrompt(passphrase, "招待コード: "); err != nil {
 		return err
 	}
 	ctx, cancel := newContext()
@@ -51,27 +54,21 @@ func newUserCmd(app *appContext) *cobra.Command {
 }
 
 func newUserInfoCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "info", "認証済みユーザーの詳細を取得する", func(ctx cmdCtx) (any, error) {
-		return app.client().Info(ctx.ctx)
-	})
+	return authRawCmd(app, "info", "認証済みユーザーの詳細を取得する", app.client().Info)
 }
 
 func newUserExistsCmd(app *appContext) *cobra.Command {
 	var email string
 	cmd := &cobra.Command{
 		Use:   "exists",
-		Short: "指定メールのユーザーが存在するか確認する",
+		Short: "指定した学籍番号/メールのユーザーが存在するか確認する",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			raw, err := app.client().Exists(ctx, email)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(false, func(ctx context.Context) (rawJSON, error) {
+				return app.client().Exists(ctx, resolveEmail(email))
+			})
 		},
 	}
-	cmd.Flags().StringVar(&email, "email", "", "確認するメールアドレス")
+	cmd.Flags().StringVar(&email, "email", "", "学籍番号")
 	cmd.MarkFlagRequired("email")
 	return cmd
 }
@@ -86,16 +83,9 @@ func newUserUpdateCmd(app *appContext) *cobra.Command {
 			addIfSet(body, "displayName", displayName)
 			addIfSet(body, "photoUrl", photoURL)
 			addIfSet(body, "password", password)
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().UpdateUser(ctx, body)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().UpdateUser(ctx, body)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&displayName, "display-name", "", "表示名")
@@ -110,30 +100,22 @@ func newUserResetPasswordCmd(app *appContext) *cobra.Command {
 		Use:   "reset-password",
 		Short: "パスワードリセットメールを送信する",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			raw, err := app.client().ResetPassword(ctx, email)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(false, func(ctx context.Context) (rawJSON, error) {
+				return app.client().ResetPassword(ctx, resolveEmail(email))
+			})
 		},
 	}
-	cmd.Flags().StringVar(&email, "email", "", "メールアドレス")
+	cmd.Flags().StringVar(&email, "email", "", "学籍番号")
 	cmd.MarkFlagRequired("email")
 	return cmd
 }
 
 func newUserVerifyEmailCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "verify-email", "確認メールを再送する", func(ctx cmdCtx) (any, error) {
-		return app.client().VerifyEmail(ctx.ctx)
-	})
+	return authRawCmd(app, "verify-email", "確認メールを再送する", app.client().VerifyEmail)
 }
 
 func newUserProvidersCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "providers", "紐づくログイン手段を表示する", func(ctx cmdCtx) (any, error) {
-		return app.client().Providers(ctx.ctx)
-	})
+	return authRawCmd(app, "providers", "紐づくログイン手段を表示する", app.client().Providers)
 }
 
 func addIfSet(m map[string]string, key, value string) {

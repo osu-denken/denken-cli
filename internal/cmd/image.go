@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 )
 
@@ -11,9 +13,7 @@ func newImageCmd(app *appContext) *cobra.Command {
 }
 
 func newImageListCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "list", "アップロード済み画像を一覧する (要 BlogEdit 権限)", func(c cmdCtx) (any, error) {
-		return app.client().ImageList(c.ctx)
-	})
+	return authRawCmd(app, "list", "アップロード済み画像を一覧する (要 BlogEdit 権限)", app.client().ImageList)
 }
 
 func newImageUploadCmd(app *appContext) *cobra.Command {
@@ -22,16 +22,9 @@ func newImageUploadCmd(app *appContext) *cobra.Command {
 		Use:   "upload",
 		Short: "画像をアップロードする (要 ImageUpload 権限)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().ImageUpload(ctx, file, name)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().ImageUpload(ctx, file, name)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&file, "file", "", "画像ファイルのパス (jpg/png/webp/gif, 最大20MB)")
@@ -46,16 +39,9 @@ func newImageDeleteCmd(app *appContext) *cobra.Command {
 		Use:   "delete",
 		Short: "画像を削除する (要 ImageDelete 権限)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().ImageDelete(ctx, filename, sha)
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
+			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
+				return app.client().ImageDelete(ctx, filename, sha)
+			})
 		},
 	}
 	cmd.Flags().StringVar(&filename, "filename", "", "削除する画像のファイル名")

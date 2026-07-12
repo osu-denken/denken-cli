@@ -11,44 +11,13 @@ func newInviteCmd(app *appContext) *cobra.Command {
 }
 
 func newInviteValidateCmd(app *appContext) *cobra.Command {
-	return &cobra.Command{
-		Use:   "validate <code>",
-		Short: "招待コードが有効かどうかを検証する",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			raw, err := app.client().InviteValidate(ctx, args[0])
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
-		},
-	}
+	return argCmd(app, "validate <code>", "招待コードが有効かどうかを検証する", false, app.client().InviteValidate)
 }
 
 func newInviteCreateCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "create", "新しい招待コードを生成する (要 InviteCodeCreate 権限)", func(c cmdCtx) (any, error) {
-		return app.client().InviteCreate(c.ctx)
-	})
+	return authRawCmd(app, "create", "新しい招待コードを生成する (要 InviteCodeCreate 権限)", app.client().InviteCreate)
 }
 
 func newInviteDeleteCmd(app *appContext) *cobra.Command {
-	return &cobra.Command{
-		Use:   "delete <code>",
-		Short: "指定した招待コードを無効化する",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx, cancel := newContext()
-			defer cancel()
-			if err := app.requireAuth(ctx); err != nil {
-				return err
-			}
-			raw, err := app.client().InviteDelete(ctx, args[0])
-			if err != nil {
-				return err
-			}
-			return app.printJSON(raw)
-		},
-	}
+	return argCmd(app, "delete <code>", "指定した招待コードを無効化する", true, app.client().InviteDelete)
 }
