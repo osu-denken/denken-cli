@@ -4,11 +4,12 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
 // memberIDCmd は <id> を1つ取り認証必須で JSON を表示するコマンドを作る。
-func memberIDCmd(app *appContext, use, short string, call func(context.Context, int) (rawJSON, error)) *cobra.Command {
+func memberIDCmd(app *appContext, use, short string, call func(*api.Client, context.Context, int) (rawJSON, error)) *cobra.Command {
 	return &cobra.Command{
 		Use:   use,
 		Short: short,
@@ -19,7 +20,7 @@ func memberIDCmd(app *appContext, use, short string, call func(context.Context, 
 				return err
 			}
 			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
-				return call(ctx, id)
+				return call(app.client(), ctx, id)
 			})
 		},
 	}

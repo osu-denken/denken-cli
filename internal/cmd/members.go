@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -31,13 +32,13 @@ func newMembersListCmd(app *appContext) *cobra.Command {
 }
 
 func newMembersDetailCmd(app *appContext) *cobra.Command {
-	return memberIDCmd(app, "detail <id>", "部員一人の詳細を取得する", app.client().MembersDetail)
+	return memberIDCmd(app, "detail <id>", "部員一人の詳細を取得する", (*api.Client).MembersDetail)
 }
 
 func newMembersApproveCmd(app *appContext) *cobra.Command {
-	return memberIDCmd(app, "approve <id>", "仮部員を承認する (要 MemberApprove 権限)", app.client().MembersApprove)
+	return memberIDCmd(app, "approve <id>", "仮部員を承認する (要 MemberApprove 権限)", (*api.Client).MembersApprove)
 }
 
 func newMembersRejectCmd(app *appContext) *cobra.Command {
-	return memberIDCmd(app, "reject <id>", "仮部員の登録を却下する (要 MemberApprove 権限)", app.client().MembersReject)
+	return memberIDCmd(app, "reject <id>", "仮部員の登録を却下する (要 MemberApprove 権限)", (*api.Client).MembersReject)
 }
