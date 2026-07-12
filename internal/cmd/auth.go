@@ -82,7 +82,7 @@ func newLogoutCmd(app *appContext) *cobra.Command {
 }
 
 func newWhoamiCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "whoami", "認証済みユーザーの情報を表示する", app.client().Info)
+	return authRawCmd(app, "whoami", "認証済みユーザーの情報を表示する", (*api.Client).Info)
 }
 
 func newRefreshCmd(app *appContext) *cobra.Command {

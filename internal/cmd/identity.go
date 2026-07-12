@@ -7,7 +7,7 @@ const studentDomain = "@ge.osaka-sandai.ac.jp"
 
 // resolveEmail は入力をログイン用メールアドレスに正規化する。
 // '@' を含めばメールとしてそのまま扱い、含まなければ学籍番号とみなして
-// 小文字化・接頭辞 s の補完・ドメイン付与を行う (例: 24H034 -> s24h034@ge.osaka-sandai.ac.jp)。
+// 小文字化・接頭辞 s の補完・ドメイン付与を行う (例: 99X999 -> s99x999@ge.osaka-sandai.ac.jp)。
 func resolveEmail(input string) string {
 	v := strings.TrimSpace(input)
 	if v == "" || strings.Contains(v, "@") {

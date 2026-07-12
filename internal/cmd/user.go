@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -54,7 +55,7 @@ func newUserCmd(app *appContext) *cobra.Command {
 }
 
 func newUserInfoCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "info", "認証済みユーザーの詳細を取得する", app.client().Info)
+	return authRawCmd(app, "info", "認証済みユーザーの詳細を取得する", (*api.Client).Info)
 }
 
 func newUserExistsCmd(app *appContext) *cobra.Command {
@@ -111,11 +112,11 @@ func newUserResetPasswordCmd(app *appContext) *cobra.Command {
 }
 
 func newUserVerifyEmailCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "verify-email", "確認メールを再送する", app.client().VerifyEmail)
+	return authRawCmd(app, "verify-email", "確認メールを再送する", (*api.Client).VerifyEmail)
 }
 
 func newUserProvidersCmd(app *appContext) *cobra.Command {
-	return authRawCmd(app, "providers", "紐づくログイン手段を表示する", app.client().Providers)
+	return authRawCmd(app, "providers", "紐づくログイン手段を表示する", (*api.Client).Providers)
 }
 
 func addIfSet(m map[string]string, key, value string) {
