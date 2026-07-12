@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/osu-denken/denken-cli/internal/editor"
 )
@@ -26,6 +27,24 @@ func (a *appContext) runEdit(ext, doneLabel string, fetch func(context.Context) 
 		return err
 	}
 	fmt.Fprintln(a.out, "更新しました:", doneLabel)
+	return nil
+}
+
+// runFileUpdate は「ファイル読込 → 認証 → save → 完了表示」の定型処理をまとめる。
+func (a *appContext) runFileUpdate(file, label string, save func(context.Context, string) error) error {
+	content, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	ctx, cancel := newContext()
+	defer cancel()
+	if err := a.requireAuth(ctx); err != nil {
+		return err
+	}
+	if err := save(ctx, string(content)); err != nil {
+		return err
+	}
+	fmt.Fprintln(a.out, "更新しました:", label)
 	return nil
 }
 

@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
@@ -35,32 +33,17 @@ func newGithubCmd(app *appContext) *cobra.Command {
 }
 
 func newGithubInviteCmd(app *appContext) *cobra.Command {
-	var email string
-	cmd := &cobra.Command{
-		Use:   "invite",
-		Short: "指定メールを GitHub Organization に招待する (要 MemberManage 権限)",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
-				return app.client().GithubInvite(ctx, email)
-			})
-		},
-	}
-	cmd.Flags().StringVar(&email, "email", "", "招待するメールアドレス")
-	cmd.MarkFlagRequired("email")
-	return cmd
+	return strFlagCmd(app, strFlag{
+		use: "invite", short: "指定メールを GitHub Organization に招待する (要 MemberManage 権限)",
+		name: "email", help: "招待するメールアドレス", auth: true, required: true,
+		call: (*api.Client).GithubInvite,
+	})
 }
 
 func newGithubJoinCmd(app *appContext) *cobra.Command {
-	var username string
-	cmd := &cobra.Command{
-		Use:   "join",
-		Short: "自分が Organization への招待を受け取る (連携済みなら username 省略可)",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
-				return app.client().GithubJoin(ctx, username)
-			})
-		},
-	}
-	cmd.Flags().StringVar(&username, "username", "", "GitHub ユーザー名")
-	return cmd
+	return strFlagCmd(app, strFlag{
+		use: "join", short: "自分が Organization への招待を受け取る (連携済みなら username 省略可)",
+		name: "username", help: "GitHub ユーザー名", auth: true,
+		call: (*api.Client).GithubJoin,
+	})
 }

@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"context"
-	"os"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -41,18 +41,11 @@ func newTerminalEditCmd(app *appContext) *cobra.Command {
 }
 
 func newTerminalGetCmd(app *appContext) *cobra.Command {
-	var page string
-	cmd := &cobra.Command{
-		Use:   "get",
-		Short: "welcome.md の内容を取得する",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.runRaw(false, func(ctx context.Context) (rawJSON, error) {
-				return app.client().TerminalGet(ctx, page)
-			})
-		},
-	}
-	cmd.Flags().StringVar(&page, "page", "welcome", "ページ名")
-	return cmd
+	return strFlagCmd(app, strFlag{
+		use: "get", short: "welcome.md の内容を取得する",
+		name: "page", def: "welcome", help: "ページ名",
+		call: (*api.Client).TerminalGet,
+	})
 }
 
 func newTerminalUpdateCmd(app *appContext) *cobra.Command {
@@ -61,12 +54,9 @@ func newTerminalUpdateCmd(app *appContext) *cobra.Command {
 		Use:   "update",
 		Short: "welcome.md を更新し再ビルドを起動する",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			content, err := os.ReadFile(file)
-			if err != nil {
+			return app.runFileUpdate(file, "welcome.md", func(ctx context.Context, content string) error {
+				_, err := app.client().TerminalUpdate(ctx, content)
 				return err
-			}
-			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
-				return app.client().TerminalUpdate(ctx, string(content))
 			})
 		},
 	}

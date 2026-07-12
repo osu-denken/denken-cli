@@ -46,6 +46,37 @@ func authRawCmd(app *appContext, use, short string, call clientCall) *cobra.Comm
 	}
 }
 
+// strFlag は「文字列フラグ1つ → API 呼び出し → JSON 表示」コマンドの仕様。
+type strFlag struct {
+	use, short, name, help, def string
+	auth, required              bool
+	xform                       func(string) string // 入力変換 (nil 可)
+	call                        func(*api.Client, context.Context, string) (rawJSON, error)
+}
+
+// strFlagCmd は strFlag からコマンドを生成する。
+func strFlagCmd(app *appContext, s strFlag) *cobra.Command {
+	var v string
+	cmd := &cobra.Command{
+		Use:   s.use,
+		Short: s.short,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			arg := v
+			if s.xform != nil {
+				arg = s.xform(v)
+			}
+			return app.runRaw(s.auth, func(ctx context.Context) (rawJSON, error) {
+				return s.call(app.client(), ctx, arg)
+			})
+		},
+	}
+	cmd.Flags().StringVar(&v, s.name, s.def, s.help)
+	if s.required {
+		cmd.MarkFlagRequired(s.name)
+	}
+	return cmd
+}
+
 // argCmd は文字列引数を1つ取り JSON を表示するコマンドを作る。auth で認証要否を指定する。
 func argCmd(app *appContext, use, short string, auth bool, call func(*api.Client, context.Context, string) (rawJSON, error)) *cobra.Command {
 	return &cobra.Command{

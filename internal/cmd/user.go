@@ -59,19 +59,11 @@ func newUserInfoCmd(app *appContext) *cobra.Command {
 }
 
 func newUserExistsCmd(app *appContext) *cobra.Command {
-	var email string
-	cmd := &cobra.Command{
-		Use:   "exists",
-		Short: "指定した学籍番号/メールのユーザーが存在するか確認する",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.runRaw(false, func(ctx context.Context) (rawJSON, error) {
-				return app.client().Exists(ctx, resolveEmail(email))
-			})
-		},
-	}
-	cmd.Flags().StringVar(&email, "email", "", "学籍番号")
-	cmd.MarkFlagRequired("email")
-	return cmd
+	return strFlagCmd(app, strFlag{
+		use: "exists", short: "指定した学籍番号のユーザーが存在するか確認する",
+		name: "email", help: "学籍番号", required: true,
+		xform: resolveEmail, call: (*api.Client).Exists,
+	})
 }
 
 func newUserUpdateCmd(app *appContext) *cobra.Command {
@@ -96,19 +88,11 @@ func newUserUpdateCmd(app *appContext) *cobra.Command {
 }
 
 func newUserResetPasswordCmd(app *appContext) *cobra.Command {
-	var email string
-	cmd := &cobra.Command{
-		Use:   "reset-password",
-		Short: "パスワードリセットメールを送信する",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.runRaw(false, func(ctx context.Context) (rawJSON, error) {
-				return app.client().ResetPassword(ctx, resolveEmail(email))
-			})
-		},
-	}
-	cmd.Flags().StringVar(&email, "email", "", "学籍番号")
-	cmd.MarkFlagRequired("email")
-	return cmd
+	return strFlagCmd(app, strFlag{
+		use: "reset-password", short: "パスワードリセットメールを送信する",
+		name: "email", help: "学籍番号", required: true,
+		xform: resolveEmail, call: (*api.Client).ResetPassword,
+	})
 }
 
 func newUserVerifyEmailCmd(app *appContext) *cobra.Command {

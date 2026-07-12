@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -98,22 +97,11 @@ func newBlogUpdateCmd(app *appContext) *cobra.Command {
 }
 
 func runBlogUpdate(app *appContext, slug, title, contentFile string) error {
-	content, err := os.ReadFile(contentFile)
-	if err != nil {
-		return err
-	}
 	meta := map[string]any{}
 	if title != "" {
 		meta["title"] = title
 	}
-	ctx, cancel := newContext()
-	defer cancel()
-	if err := app.requireAuth(ctx); err != nil {
-		return err
-	}
-	if err := app.client().BlogUpdate(ctx, slug, meta, string(content)); err != nil {
-		return err
-	}
-	fmt.Fprintln(app.out, "更新しました:", slug)
-	return nil
+	return app.runFileUpdate(contentFile, slug, func(ctx context.Context, content string) error {
+		return app.client().BlogUpdate(ctx, slug, meta, content)
+	})
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"os"
 
 	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/osu-denken/denken-cli/internal/editor"
@@ -41,19 +40,11 @@ func newSitePagesEditCmd(app *appContext) *cobra.Command {
 }
 
 func newSitePagesGetCmd(app *appContext) *cobra.Command {
-	var path string
-	cmd := &cobra.Command{
-		Use:   "get",
-		Short: "固定ページファイルの中身を取得する",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
-				return app.client().SitePagesGet(ctx, path)
-			})
-		},
-	}
-	cmd.Flags().StringVar(&path, "path", "", "ファイルパス")
-	cmd.MarkFlagRequired("path")
-	return cmd
+	return strFlagCmd(app, strFlag{
+		use: "get", short: "固定ページファイルの中身を取得する",
+		name: "path", help: "ファイルパス", auth: true, required: true,
+		call: (*api.Client).SitePagesGet,
+	})
 }
 
 func newSitePagesUpdateCmd(app *appContext) *cobra.Command {
@@ -62,12 +53,9 @@ func newSitePagesUpdateCmd(app *appContext) *cobra.Command {
 		Use:   "update",
 		Short: "固定ページファイルを更新し再ビルドを起動する",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			content, err := os.ReadFile(file)
-			if err != nil {
+			return app.runFileUpdate(file, path, func(ctx context.Context, content string) error {
+				_, err := app.client().SitePagesUpdate(ctx, path, content)
 				return err
-			}
-			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
-				return app.client().SitePagesUpdate(ctx, path, string(content))
 			})
 		},
 	}
