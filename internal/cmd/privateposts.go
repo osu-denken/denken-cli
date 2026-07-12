@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"os"
 
 	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
@@ -62,12 +61,9 @@ func newPPUpdateCmd(app *appContext) *cobra.Command {
 		Use:   "update",
 		Short: "非公開記事を新規作成または上書きする (要 PrivatePostEdit 権限)",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			content, err := os.ReadFile(file)
-			if err != nil {
+			return app.runFileUpdate(file, slug, func(ctx context.Context, content string) error {
+				_, err := app.client().PrivatePostUpdate(ctx, slug, title, content)
 				return err
-			}
-			return app.runRaw(true, func(ctx context.Context) (rawJSON, error) {
-				return app.client().PrivatePostUpdate(ctx, slug, title, string(content))
 			})
 		},
 	}
