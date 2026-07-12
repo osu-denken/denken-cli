@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -9,9 +10,51 @@ import (
 func newPrivatePostsCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "private-posts", Short: "非公開記事の操作", Aliases: []string{"pp"}}
 	cmd.AddCommand(
-		newPPListCmd(app), newPPGetCmd(app), newPPUpdateCmd(app), newPPDeleteCmd(app),
+		newPPListCmd(app), newPPGetCmd(app), newPPUpdateCmd(app), newPPDeleteCmd(app), newPPEditCmd(app),
 	)
 	return cmd
+}
+
+func newPPEditCmd(app *appContext) *cobra.Command {
+	return &cobra.Command{
+		Use:   "edit <slug>",
+		Short: "非公開記事の本文を $EDITOR で開いて編集、保存する (要 PrivatePostEdit 権限)",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runPPEdit(app, args[0])
+		},
+	}
+}
+
+func runPPEdit(app *appContext, slug string) error {
+	current, title, err := fetchPrivatePost(app, slug)
+	if err != nil {
+		return err
+	}
+	edited, ok, err := app.openEditor(current, ".md")
+	if err != nil || !ok {
+		return err
+	}
+	ctx, cancel := newContext()
+	defer cancel()
+	if _, err := app.client().PrivatePostUpdate(ctx, slug, title, edited); err != nil {
+		return err
+	}
+	fmt.Fprintln(app.out, "更新しました:", slug)
+	return nil
+}
+
+func fetchPrivatePost(app *appContext, slug string) (content, title string, err error) {
+	ctx, cancel := newContext()
+	defer cancel()
+	if err = app.requireAuth(ctx); err != nil {
+		return "", "", err
+	}
+	raw, err := app.client().PrivatePostGet(ctx, slug)
+	if err != nil {
+		return "", "", err
+	}
+	return jsonField(raw, "content"), jsonField(raw, "title"), nil
 }
 
 func newPPListCmd(app *appContext) *cobra.Command {

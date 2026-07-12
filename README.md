@@ -38,7 +38,7 @@ denken-cli [command] [flags]
 | コマンド | 説明 |
 | --- | --- |
 | `user info` | 認証済みユーザーの詳細を取得する |
-| `user update [--display-name --photo-url --password]` | 表示名・写真・パスワードを更新する |
+| `user update [--display-name --photo-url --password]` | 表示名、写真、パスワードを更新する |
 | `user exists --email <mail>` | 指定メールのユーザーが存在するか確認する |
 | `user reset-password --email <mail>` | パスワードリセットメールを送信する |
 | `user verify-email` | 確認メールを再送する |
@@ -59,6 +59,7 @@ denken-cli [command] [flags]
 | `blog list` | 記事の一覧を取得する |
 | `blog get <slug>` | 記事の本文とメタデータを取得する |
 | `blog update --slug <s> --file <path> [--title]` | 記事を新規作成/更新する (要 BlogEdit) |
+| `blog edit <slug>` | 記事の本文を $EDITOR で開いて編集、保存する (要 BlogEdit) |
 
 #### `invite` — 招待コード
 
@@ -86,6 +87,7 @@ denken-cli [command] [flags]
 | `private-posts get <slug>` | 本文を取得する (要 PrivatePostView) |
 | `private-posts update --slug <s> --file <path> [--title]` | 新規作成/上書きする (要 PrivatePostEdit) |
 | `private-posts delete <slug>` | 削除する (要 PrivatePostEdit) |
+| `private-posts edit <slug>` | 本文を `$EDITOR` で開いて編集・保存する (要 PrivatePostEdit) |
 
 #### `image` — ブログ用画像
 
@@ -122,9 +124,13 @@ denken-cli [command] [flags]
 | --- | --- |
 | `pages terminal get [--page]` | ターミナルの welcome.md を取得する |
 | `pages terminal update --file <path>` | welcome.md を更新し再ビルドを起動する |
+| `pages terminal edit [--page]` | welcome.md を `$EDITOR` で開いて編集・保存する |
 | `pages site list` | 編集できるファイルの一覧を返す |
 | `pages site get --path <p>` | 固定ページの中身を取得する |
 | `pages site update --path <p> --file <path>` | 固定ページを更新し再ビルドを起動する |
+| `pages site edit --path <p>` | 固定ページを `$EDITOR` で開いて編集、保存する (拡張子は path から判定) |
+
+> `edit` 系はサーバーから現在の内容を取得してエディタで開き、保存して閉じると差分をそのまま API に反映する。内容が変わらなければ送信しない。使用するエディタは `DENKEN_EDITOR` → `VISUAL` → `EDITOR` の順で決定し、未設定なら Windows は `notepad`、その他は `vi`。
 
 #### `logs` / `config`
 

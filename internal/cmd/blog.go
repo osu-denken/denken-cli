@@ -5,13 +5,52 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/osu-denken/denken-cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
 func newBlogCmd(app *appContext) *cobra.Command {
 	cmd := &cobra.Command{Use: "blog", Short: "ブログ記事の操作"}
-	cmd.AddCommand(newBlogListCmd(app), newBlogGetCmd(app), newBlogUpdateCmd(app))
+	cmd.AddCommand(newBlogListCmd(app), newBlogGetCmd(app), newBlogUpdateCmd(app), newBlogEditCmd(app))
 	return cmd
+}
+
+func newBlogEditCmd(app *appContext) *cobra.Command {
+	return &cobra.Command{
+		Use:   "edit <slug>",
+		Short: "記事の本文を $EDITOR で開いて編集、保存する (要 BlogEdit 権限)",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runBlogEdit(app, args[0])
+		},
+	}
+}
+
+func runBlogEdit(app *appContext, slug string) error {
+	entry, err := fetchBlog(app, slug)
+	if err != nil {
+		return err
+	}
+	edited, ok, err := app.openEditor(entry.Content, ".md")
+	if err != nil || !ok {
+		return err
+	}
+	ctx, cancel := newContext()
+	defer cancel()
+	if err := app.client().BlogUpdate(ctx, slug, entry.Meta, edited); err != nil {
+		return err
+	}
+	fmt.Fprintln(app.out, "更新しました:", slug)
+	return nil
+}
+
+func fetchBlog(app *appContext, slug string) (*api.BlogEntry, error) {
+	ctx, cancel := newContext()
+	defer cancel()
+	if err := app.requireAuth(ctx); err != nil {
+		return nil, err
+	}
+	return app.client().BlogGet(ctx, slug)
 }
 
 func newBlogListCmd(app *appContext) *cobra.Command {
