@@ -1,0 +1,3 @@
+[submodule "web-api"]
+	path = web-api
+	url = git@github.com:osu-denken/web-api.git
